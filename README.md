@@ -1,3 +1,17 @@
+<!-- downstream:start (visual-explainer-hook; keep this block first, everything below is upstream) -->
+> **visual-explainer-hook** is a fork of [visual-explainer](https://github.com/nicobailon/visual-explainer) that adds [`hook/`](hook/README.md): a turn-end hook for a coding agent (today: Claude Code's `Stop`) that turns each finished turn into a visual-explainer page (or skips it), drawn by a cheaper model.
+>
+> **Why:** turns become readable pages at no cost or context to the main agent, and you can watch how models and effort levels follow the same instructions on real turns.
+>
+> **Status: pilot POC.** It runs on one machine (WSL + Claude Code), setup is manual, and anything in `hook/` may change.
+>
+> **Branch tracking**
+> - `main`: this fork (upstream + our commits on top)
+> - [`upstream-main`](../../tree/upstream-main): untouched mirror of upstream's `main`
+>
+> What we changed and how to rebase: [README-DOWNSTREAM.md](README-DOWNSTREAM.md)
+<!-- downstream:end -->
+
 <p>
   <img src="banner.png" alt="visual-explainer" width="1100">
 </p>
