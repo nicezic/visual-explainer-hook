@@ -60,9 +60,9 @@ end=$(printf '\n## %s · %s\n### user\n%s\n### claude\n%s\n' "$id" "$cwd" "$(mas
 # Rules (contract.md) REPLACE pi's own coding-assistant prompt, whose "inspect files" role and pi-doc pointers made
 # explainers wander; --no-skills drops pi's skill list. VE docs follow, each labelled with its path so the model
 # can tell a preloaded doc from one it has not seen. All static, so the prefix stays cache-friendly.
-# Preloaded: the references every page may need (user's call, ~21:30; cached after a segment's first run). Not
-# slides/video, plans/machines (2026-11-15: the explainer never makes decks, plans, or walks code), or diagrams.md (the hand-drawn SVG manual) is
-# read on demand since 23:30: M3 copied its SVG template on 30 of 30 pages despite the last-resort rule.
+# Preloaded: the references every page may need (user's call, ~21:30; cached after a segment's first run).
+# Not preloaded: slides/video and plans/machines (the explainer never makes decks, plans, or walks code), and
+# diagrams.md (the hand-drawn SVG manual), read on demand since 23:30: M3 copied its SVG template on 30 of 30 pages.
 # Tools are read + write (read came back at ~04:20, unlimited by the user's call).
 sys=(--system-prompt "$(cat "$H/contract.md")" --no-skills)
 for doc in SKILL.md references/{style-guide,kit,motion,themes,extras}.md; do
@@ -100,7 +100,7 @@ explain() {
   # '→ page:' lines are left out: the journal already holds those pages as the explainer's own replies.
   [ "$end" -gt "$pos" ] && new=$(sed -n "$((pos + 1)),${end}p" "$L" | grep -v '^→ page:')
   # The varying part (entry id, page path) goes LAST, after the log lines.
-  # "Figures:" repeats the contract's figure rule at the end (2026-11-14 23:30): M3 ignored it in the system prompt (30/30 SVG).
+  # "Figures:" restates the docs' auto-layout-first rule near the end of each page request (HISTORY decisions 14, 18).
   # The format below is single-quoted: an apostrophe in its text breaks the live hook.
   if res=$(printf '<log>\n%s\n</log>\n\nExplain ONLY entry "## %s". Page source path: %s\nFigures: draw every figure with auto-layout: <ve-flow> for boxes and arrows, <ve-bars> / <ve-waffle> / <ve-stack> for numbers, .kpis for key numbers, .ve-table for rows, CSS grid for cards and timelines. Hand-drawn <svg> only when truly needed, that is, when auto-layout cannot show the figure at all; then read references/diagrams.md first.\nFinal reply: "%s.html | <title>", or SKIP.\n' \
       "$new" "$id" "$OUT/$page.src.html" "$page" \
