@@ -1,0 +1,8 @@
+# Runtime data never belongs in the repo (it lives in $VISUAL_EXPLAINER_HOOK_DIR); this is a second guard.
+logs/
+sessions/
+runs/
+log.md
+*.log
+in.*
+.lock
