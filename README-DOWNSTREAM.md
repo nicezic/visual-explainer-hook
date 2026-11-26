@@ -18,10 +18,7 @@ Branches: `main` = ours (upstream + our stack, the fork's default branch). `upst
 
 ## Upstream lines we changed (re-apply the INTENT if a rebase conflicts)
 
-| File | Intent | Why |
-|---|---|---|
-| `plugins/visual-explainer/SKILL.md` (figure table "Architecture…" row, and the paragraph after the table); `references/diagrams.md` (line 3) | Auto-layout figures come first, defined in that paragraph: the renderer or the browser places them (`<ve-flow>`, `<ve-bars>` / `<ve-waffle>` / `<ve-stack>`, `.kpis`, `.ve-table`, CSS grid), so no coordinates are written. Hand-drawn SVG only when truly needed. Replaces upstream's "Hand-drawn SVG is the default; never bend a figure to fit a tag" (#119). | Efficiency: auto-layout costs fewer tokens, less context and less time, and every failed render check repeats that cost. Weak explainer models (MiniMax-M3) misplace hand-drawn labels. **Offered upstream: PR #137 (draft, branch `docs/figures-auto-layout-first`).** |
-| `plugins/visual-explainer/references/kit.md` (Node row) | `.ve-n` text centres on x AND y; kit CSS beats a `text-anchor` attribute, so x = box centre | Undocumented upstream (kit.css `.ve-n text`); M3 wrote left-padding x and labels left their boxes. **Sent upstream: PR #136.** |
+None as of v0.16.0: both of ours landed upstream, so those files are upstream's text again — `.ve-n` x-centring (upstream `83d33cf`, PR #136) and `<ve-flow>` as the default for plain flows (upstream `a148a62`, PR #137).
 
 When an upstream PR candidate lands upstream, drop our line during the rebase and remove its row here.
 

@@ -38,7 +38,7 @@ main turn ends
 ## Where things live
 
 - **Code:** this `hook/` dir of the `visual-explainer-hook` fork. Fork upkeep and new-machine setup: [../README-DOWNSTREAM.md](../README-DOWNSTREAM.md).
-- **VE:** this fork's `plugins/visual-explainer` (upstream plus the lines listed in the ledger).
+- **VE:** this fork's `plugins/visual-explainer` (upstream's files, unmodified since v0.16.0; the ledger lists any line we change).
 - **Runtime data:** `$VISUAL_EXPLAINER_HOOK_DIR`, default `${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook`. It holds conversations, so it stays outside this public repo.
 - **This machine:** `~/.agent/explainer/` holds the data plus two-line wrappers (`explain.sh`, `status.sh`, `stats.sh`) that set the variable and exec the scripts here. `~/.claude/settings.json` → `hooks.Stop` points at the wrapper, so edits here go live at once, for every session in every project.
 
