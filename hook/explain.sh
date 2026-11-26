@@ -100,8 +100,7 @@ explain() {
   # '→ page:' lines are left out: the journal already holds those pages as the explainer's own replies.
   [ "$end" -gt "$pos" ] && new=$(sed -n "$((pos + 1)),${end}p" "$L" | grep -v '^→ page:')
   # The varying part (entry id, page path) goes LAST, after the log lines.
-  # "Figures:" carries the fork's auto-layout-first rule near the end of each page request (HISTORY decisions 14, 18);
-  # the upstream docs only partly share it (<ve-flow> for plain flows), so dropping this line drops the rule.
+  # "Figures:" restates the docs' auto-layout-first rule near the end of each page request (HISTORY decisions 14, 18).
   # The format below is single-quoted: an apostrophe in its text breaks the live hook.
   if res=$(printf '<log>\n%s\n</log>\n\nExplain ONLY entry "## %s". Page source path: %s\nFigures: draw every figure with auto-layout: <ve-flow> for boxes and arrows, <ve-bars> / <ve-waffle> / <ve-stack> for numbers, .kpis for key numbers, .ve-table for rows, CSS grid for cards and timelines. Hand-drawn <svg> only when truly needed, that is, when auto-layout cannot show the figure at all; then read references/diagrams.md first.\nFinal reply: "%s.html | <title>", or SKIP.\n' \
       "$new" "$id" "$OUT/$page.src.html" "$page" \

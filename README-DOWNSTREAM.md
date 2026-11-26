@@ -18,7 +18,13 @@ Branches: `main` = ours (upstream + our stack, the fork's default branch). `upst
 
 ## Upstream lines we changed (re-apply the INTENT if a rebase conflicts)
 
-None as of v0.16.0: both of ours landed upstream, so those files are upstream's text again — `.ve-n` x-centring (upstream `83d33cf`, PR #136) and `<ve-flow>` as the default for plain flows (upstream `a148a62`, PR #137).
+| File | Intent | Why |
+|---|---|---|
+| `plugins/visual-explainer/SKILL.md` (figure table "Architecture…" row, and the paragraph after the table); `references/diagrams.md` (line 3) | Auto-layout figures come first, defined in that paragraph: the renderer or the browser places them (`<ve-flow>`, `<ve-bars>` / `<ve-waffle>` / `<ve-stack>`, `.kpis`, `.ve-table`, CSS grid), so no coordinates are written. Hand-drawn SVG only when truly needed. Replaces upstream's "Hand-drawn SVG is the default; never bend a figure to fit a tag" (#119). | Efficiency: auto-layout costs fewer tokens, less context and less time, and every failed render check repeats that cost. Weak explainer models (MiniMax-M3) misplace hand-drawn labels. |
+
+`.ve-n` x-centring is upstream's now: **PR #136 landed as upstream `83d33cf`**, so its `kit.md` row is dropped here and never re-applied.
+
+The figure row above was offered as **PR #137 and merged narrower**: `<ve-flow>` for plain box-and-arrow flows only (`a148a62`). The maintainer kept hand-drawn SVG the default where `<ve-flow>` can't draw ("stronger models do well there", 2026-11-25) and left `references/diagrams.md` unchanged, so the auto-layout-first wording stays downstream.
 
 When an upstream PR candidate lands upstream, drop our line during the rebase and remove its row here.
 
