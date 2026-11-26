@@ -87,7 +87,7 @@ explain() {
   mkdir -p "$D/sessions"; exec 8>>"$J.pos"; flock 8   # one run at a time per journal, or overlapping turns interleave it
   # Context cap (user's call: 512k tokens of M3's 1M): the explainer's own pages pile up in the journal, so past the
   # cap start over from the log alone (pages dropped). Costs one cache miss; editing history instead would break it.
-  if [ "$(jq -s '[.[] | select(.type=="message" and .message.role=="assistant") | .message.usage
+  if [ -s "$J" ] && [ "$(jq -s '[.[] | select(.type=="message" and .message.role=="assistant") | .message.usage
       | .input + .cacheRead + .output] | last // 0' "$J" 2>/dev/null || echo 0)" -gt 512000 ]; then
     mv "$J" "$J.$(date +%Y%m%d-%H%M%S)"; : >"$J.pos"; fi
   # pi needs a session header to open the file (MiniMax is not sent its id).
@@ -114,12 +114,15 @@ explain() {
     # No --open here: render opens even a page that failed its visual check, so a repaired page opened twice.
     out=$(node "$VE/kit/render.mjs" "$OUT/$page.src.html" 2>&1); ok=$?
     # A malformed kit link (e.g. data-ve-kit">) renders "as given": no kit CSS, no visual check, exit 0. Repair it too.
+    # A skipped check (no playwright, no browser) is no pass (HISTORY mistake 6); the explainer cannot fix it, so log it.
+    grep -q 'Visual check skipped' <<<"$out" && echo "ERROR visual check skipped: $page"
     grep -q 'no kit marker' <<<"$out" && { ok=1; out+=$'\n✗ no kit marker: <head> needs exactly <link rel="stylesheet" href="kit.css" data-ve-kit>'; }
     [ "$ok" = 0 ] || {
       echo "first render (sent back for repair):"; grep '✗' <<<"$out"   # problem lines only, to measure the repair
-      # One repair round: with no bash the explainer never sees render errors, so pass them back in the same journal.
+      # One repair round: with no bash the explainer never sees render errors, so pass them back in the same journal,
+      # minus the "Look at: <sheet>" line: the docs say to view the sheet, and reading the PNG costs a step and tokens.
       printf 'Render failed:\n%s\nCall write once more with the whole fixed page at %s, then reply with the same one line.\n' \
-          "$out" "$OUT/$page.src.html" \
+          "$(grep -v 'Look at:' <<<"$out")" "$OUT/$page.src.html" \
         | "$@" pi -p --model "$model" --tools read,write --no-context-files "${sys[@]}" --session "$J" >/dev/null 2>&1
       out=$(node "$VE/kit/render.mjs" "$OUT/$page.src.html" 2>&1); }
     echo "$out"
