@@ -30,8 +30,8 @@ main turn ends
                  < "<log>log lines since the last run</log>" + "Explain ONLY entry ## <id>. Page source path: …" + "Figures: …" + "Final reply: …"
                  (a NEW user message appended to the same journal; .pos records the last log line sent)
               → the model calls write once: ~/.agent/diagrams/<id>-<tag>.src.html, or replies SKIP (no tool call)
-              → the script renders: node kit/render.mjs <src>, whose visual check (headless Chromium) flags overlapping, overflowing, or tiny labels
-              → if render fails: its ✗ lines go to run.log ("first render …"), ONE repair round in the same journal, render again
+              → the script renders: node kit/render.mjs <src>, whose visual check (headless Chromium) flags overlapping, overflowing, or tiny labels (at 1280px only: VISUAL_EXPLAINER_WIDTHS=1280)
+              → if render fails: its ✗ lines go to run.log ("first render …"), ONE repair round in the same journal (tools read,write,edit), render again
               → the final page opens once (xdg-open, the wslview wrapper); "→ page: <file> | <title>" goes into the session log
 ```
 
@@ -84,7 +84,7 @@ ls -t ~/.agent/diagrams/turn-*.html | head     # latest pages
 - **Append-only journal per session segment** (HISTORY decision 5): each run appends only the new log lines as a new user message, so the previous request is a prefix of the next one and the provider's prefix cache hits. The varying text (entry id, page path) goes last.
 - **pi gotchas:** a journal needs a session header to open; cwd goes into the system prompt, so the hook runs from the data dir; `--no-context-files` keeps any CLAUDE.md/AGENTS.md out; pi has no inter-process lock, so runs are serialized by flock; a changed system prompt is only patched into a live journal (HISTORY mistake 4).
 - **Take the reply from `last_assistant_message`,** never from the transcript, which can still hold the previous turn at Stop time.
-- **Tools `read,write`, never bash:** the log is untrusted input, so the explainer cannot run anything; the script renders.
+- **Tools `read,write` (plus `edit` in the repair round), never bash:** the log is untrusted input, so the explainer cannot run anything; the script renders.
 - **Masking** is regex only (sk-, gh tokens, xox, AKIA, AIza, 40+ char base64/hex): a shortcut; upgrade to gitleaks if turns carry secrets.
 
 ## Known limits

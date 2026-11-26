@@ -8,6 +8,7 @@ H=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")   # this repo's hook/ (the ent
 D=${VISUAL_EXPLAINER_HOOK_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook}
 OUT=~/.agent/diagrams
 VE=$H/../plugins/visual-explainer   # this fork's VE, whose docs put auto-layout figures first
+export VISUAL_EXPLAINER_WIDTHS=1280   # pages open on the desktop: no 390px phone pass in the visual check (HISTORY decision 19)
 
 # Foreground: grab the hook JSON and detach, so Claude never waits and session exit does not kill us.
 if [ -z "${EXPLAIN_BG:-}" ]; then
@@ -121,9 +122,10 @@ explain() {
       echo "first render (sent back for repair):"; grep '✗' <<<"$out"   # problem lines only, to measure the repair
       # One repair round: with no bash the explainer never sees render errors, so pass them back in the same journal,
       # minus the "Look at: <sheet>" line: the docs say to view the sheet, and reading the PNG costs a step and tokens.
-      printf 'Render failed:\n%s\nCall write once more with the whole fixed page at %s, then reply with the same one line.\n' \
+      # edit lets a small fix skip rewriting the whole page (HISTORY decision 19).
+      printf 'Render failed:\n%s\nFix the page at %s: edit the broken parts, or write the whole fixed page. Then reply with the same one line.\n' \
           "$(grep -v 'Look at:' <<<"$out")" "$OUT/$page.src.html" \
-        | "$@" pi -p --model "$model" --tools read,write --no-context-files "${sys[@]}" --session "$J" >/dev/null 2>&1
+        | "$@" pi -p --model "$model" --tools read,write,edit --no-context-files "${sys[@]}" --session "$J" >/dev/null 2>&1
       out=$(node "$VE/kit/render.mjs" "$OUT/$page.src.html" 2>&1); }
     echo "$out"
     # xdg-open = the WSL wrapper (wslview); detached, as render's own --open does
