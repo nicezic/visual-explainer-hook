@@ -14,8 +14,8 @@ for j in "$D"/runs/turn-*.jsonl; do
     | {tag: $tag, sec: ((.[-1].timestamp | t) - (.[0].timestamp | t)), steps: ($m | length),
        reads: ([$m[] | .content[]? | select(.type=="toolCall" and .name=="read")] | length),
        repaired: ([$msgs[] | select(.role=="user") | .content | tostring | select(test("Render failed"))] | length > 0),
-       # shortcut: a page gone from the output dir (/tmp keeps a day) counts by its reply, so an old failed render counts as a page
-       r: (if $f == "page" or ($f == "none" and ($reply | test("\\.html \\|"))) then "page"
+       # shortcut: a page gone from the output dir (/tmp keeps a day) counts by its "<page>.html | <title>" reply (a repair round may reply otherwise), so an old failed render counts as a page
+       r: (if $f == "page" or ($f == "none" and ([$m[] | .content[]? | select(.type=="text") | .text] | any(test("\\.html \\|")))) then "page"
            elif ($m | length) == 0 or ($m[-1].stopReason // "") == "toolUse" then "running"
            elif $f == "fail" then "fail" elif $reply == "SKIP" then "skip" else "fail" end)}' "$j"
 done | jq -rs 'def avg(f): if length > 0 then (map(f)|add/length*10|round/10) else "-" end;
