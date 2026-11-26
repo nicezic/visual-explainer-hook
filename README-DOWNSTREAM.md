@@ -40,5 +40,5 @@ When an upstream PR candidate lands upstream, drop our line during the rebase an
 ## Setup on a new machine
 
 - Repo root: `pnpm install -D --config.auto-install-peers=false --config.lockfile=false` (playwright-core only, for render's visual check), then `pnpm exec playwright-core install chromium-headless-shell`.
-- Point the Claude Code `Stop` hook at `hook/explain.sh`, or at a wrapper that sets `VISUAL_EXPLAINER_HOOK_DIR` first (default data dir: `${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook`).
+- Point the Claude Code `Stop` hook at `hook/explain.sh`. Data dir: `${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook`; pages: `$VISUAL_EXPLAINER_OUTPUT_DIR` (default `~/.agents/diagrams`), set in the settings `env`.
 - Runtime data holds conversation logs: keep it outside this public repo.

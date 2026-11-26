@@ -1,4 +1,4 @@
-# Runtime data never belongs in the repo (it lives in $VISUAL_EXPLAINER_HOOK_DIR); this is a second guard.
+# Runtime data never belongs in the repo (it lives in ${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook); this is a second guard.
 logs/
 sessions/
 runs/

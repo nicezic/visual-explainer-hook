@@ -2,7 +2,7 @@
 # Per-model scoreboard from the run journals: pages / SKIP / failed, repair rounds, time to a page, reads.
 # Args: [since] [until] as YYYYMMDD-HHMMSS (default since: start of the system-prompt setup).
 # Periods: write-only 20261114-024100 .. 20261114-042300, read+write from 20261114-042300.
-D=${VISUAL_EXPLAINER_HOOK_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook} OUT=~/.agent/diagrams since=${1:-20261114-024100} until=${2:-}
+D=${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook OUT=${VISUAL_EXPLAINER_OUTPUT_DIR:-$HOME/.agents/diagrams} since=${1:-20261114-024100} until=${2:-}
 for j in "$D"/runs/turn-*.jsonl; do
   id=$(basename "$j" .jsonl); t=${id#turn-}; [[ "${t:0:15}" < "$since" ]] && continue
   [[ -n "$until" && ! "${t:0:15}" < "$until" ]] && continue
@@ -14,7 +14,8 @@ for j in "$D"/runs/turn-*.jsonl; do
     | {tag: $tag, sec: ((.[-1].timestamp | t) - (.[0].timestamp | t)), steps: ($m | length),
        reads: ([$m[] | .content[]? | select(.type=="toolCall" and .name=="read")] | length),
        repaired: ([$msgs[] | select(.role=="user") | .content | tostring | select(test("Render failed"))] | length > 0),
-       r: (if $f == "page" then "page"
+       # shortcut: a page gone from the output dir (/tmp keeps a day) counts by its reply, so an old failed render counts as a page
+       r: (if $f == "page" or ($f == "none" and ($reply | test("\\.html \\|"))) then "page"
            elif ($m | length) == 0 or ($m[-1].stopReason // "") == "toolUse" then "running"
            elif $f == "fail" then "fail" elif $reply == "SKIP" then "skip" else "fail" end)}' "$j"
 done | jq -rs 'def avg(f): if length > 0 then (map(f)|add/length*10|round/10) else "-" end;

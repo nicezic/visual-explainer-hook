@@ -2,7 +2,7 @@
 # Self-check for explain.sh: stage-1 filter, mid-turn capture, compact sync, append-only journal, failure logging. Stub pi, no model calls.
 set -u
 H=$(dirname "$(readlink -f "$0")")
-t=$(mktemp -d); trap 'rm -rf "$t"' EXIT
+s=$(mktemp -d); t=$s/visual-explainer-hook; mkdir -p "$t"; trap 'rm -rf "$s"' EXIT   # $t = the data dir under XDG_STATE_HOME=$s
 # stub pi: records stdin + args; fails, unless $t/ok exists (then it answers SKIP)
 mkdir -p "$t/bin"; printf '#!/bin/sh\ncat >"%s/stdin"; printf "%%s\\n" "$@" >"%s/args"; [ -f "%s/ok" ] && { echo SKIP; exit 0; }; echo "Error: stub pi failed"; exit 1\n' "$t" "$t" "$t" >"$t/bin/pi"; chmod +x "$t/bin/pi"
 fails=0; sid=s1
@@ -12,7 +12,7 @@ run() {
   [ -n "${4:-}" ] && printf '%s\n' "$4" >>"$t/tr.jsonl"
   jq -n --arg tp "$t/tr.jsonl" --arg r "$3" --arg s "$sid" '{transcript_path:$tp, cwd:"/x", session_id:$s, last_assistant_message:$r}' >"$t/in.json"
   before=$(grep -c '^## turn-' "$t/logs/$sid.md" 2>/dev/null); before=${before:-0}
-  PATH="$t/bin:$PATH" VISUAL_EXPLAINER_HOOK_DIR="$t" EXPLAIN_BG=1 "$H/explain.sh" "$t/in.json" >"$t/out" 2>&1
+  PATH="$t/bin:$PATH" XDG_STATE_HOME="$s" VISUAL_EXPLAINER_OUTPUT_DIR="$s/out" EXPLAIN_BG=1 "$H/explain.sh" "$t/in.json" >"$t/out" 2>&1
   after=$(grep -c '^## turn-' "$t/logs/$sid.md" 2>/dev/null); echo $(( ${after:-0} - before ))
 }
 check() { if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1 (got $2, want $3)"; fails=$((fails+1)); fi; }

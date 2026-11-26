@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Explainer monitor: last N runs with result, cache hit on step 1, and the files the explainer touched.
-D=${VISUAL_EXPLAINER_HOOK_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook}
+D=${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook
 for f in $(ls -t "$D"/runs/*.jsonl 2>/dev/null | head -"${1:-5}"); do
   id=$(basename "$f" .jsonl)
   jq -rs --arg id "$id" 'def t: sub("\\.[0-9]+Z$"; "Z") | fromdate;

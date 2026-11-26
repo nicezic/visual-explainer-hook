@@ -17,7 +17,7 @@ What no similar project combined when this started: one persistent explainer con
 
 ```
 main turn ends
-  └─ Claude Code runs the Stop hook: hook/explain.sh (here via the wrapper ~/.agent/explainer/explain.sh)   (stdin JSON: last_assistant_message, transcript_path, cwd)
+  └─ Claude Code runs the Stop hook: hook/explain.sh   (stdin JSON: last_assistant_message, transcript_path, cwd)
        foreground: save stdin to in.XXXXXX, detach with `setsid -f`, exit 0 (Claude never waits)
        background:
          1. prompt = last real user prompt from the transcript (compact summaries skipped) + mid-turn messages (queued_command attachments)
@@ -29,7 +29,7 @@ main turn ends
                  --system-prompt <contract.md> --no-skills --append-system-prompt <doc path=…> × 6 (VE SKILL.md + style-guide, kit, motion, themes, extras)
                  < "<log>log lines since the last run</log>" + "Explain ONLY entry ## <id>. Page source path: …" + "Figures: …" + "Final reply: …"
                  (a NEW user message appended to the same journal; .pos records the last log line sent)
-              → the model calls write once: ~/.agent/diagrams/<id>-<tag>.src.html, or replies SKIP (no tool call)
+              → the model calls write once: $VISUAL_EXPLAINER_OUTPUT_DIR/<id>-<tag>.src.html, or replies SKIP (no tool call)
               → the script renders: node kit/render.mjs <src>, whose visual check (headless Chromium) flags overlapping, overflowing, or tiny labels (at 1280px only: VISUAL_EXPLAINER_WIDTHS=1280)
               → if render fails: its ✗ lines go to run.log ("first render …"), ONE repair round in the same journal (tools read,write,edit), render again
               → the final page opens once (xdg-open, the wslview wrapper); "→ page: <file> | <title>" goes into the session log
@@ -39,8 +39,9 @@ main turn ends
 
 - **Code:** this `hook/` dir of the `visual-explainer-hook` fork. Fork upkeep and new-machine setup: [../README-DOWNSTREAM.md](../README-DOWNSTREAM.md).
 - **VE:** this fork's `plugins/visual-explainer` (upstream plus the lines listed in the ledger).
-- **Runtime data:** `$VISUAL_EXPLAINER_HOOK_DIR`, default `${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook`. It holds conversations, so it stays outside this public repo.
-- **This machine:** `~/.agent/explainer/` holds the data plus two-line wrappers (`explain.sh`, `status.sh`, `stats.sh`) that set the variable and exec the scripts here. `~/.claude/settings.json` → `hooks.Stop` points at the wrapper, so edits here go live at once, for every session in every project.
+- **Runtime data:** `${XDG_STATE_HOME:-~/.local/state}/visual-explainer-hook`. It holds conversations, so it stays outside this public repo, and off `/tmp` (its cleanup would delete the models file and idle journals).
+- **Pages:** `$VISUAL_EXPLAINER_OUTPUT_DIR`, upstream's output variable; default `~/.agents/diagrams`.
+- **This machine:** `~/.claude/settings.json` → `hooks.Stop` runs `hook/explain.sh` here, and its `env` sets `VISUAL_EXPLAINER_OUTPUT_DIR=/tmp/ve`. Edits here go live at once, for every session in every project.
 
 ## Files
 
@@ -57,9 +58,9 @@ main turn ends
 | data `run.log`, `usage.log` | One result line per run with render output; one usage JSON line per run. |
 | data `in.XXXXXX` | Hook stdin while a run is in flight; a leftover file means a run is still going or crashed. |
 | data `models` | The lineup (below). |
-| `~/.agent/diagrams/turn-*-<tag>.html` | Output pages. |
+| `$VISUAL_EXPLAINER_OUTPUT_DIR/turn-*-<tag>.html` | Output pages. |
 
-## Models (`$VISUAL_EXPLAINER_HOOK_DIR/models`)
+## Models (`models` in the data dir)
 
 One `<tag> <model>:<effort> [runner...]` per line, `#` for comments; retired models stay as comments with their numbers. All lines run in parallel and `stats.sh` compares them by tag. No file = `m3` alone.
 
@@ -71,13 +72,13 @@ One `<tag> <model>:<effort> [runner...]` per line, `#` for comments; retired mod
 ## Commands
 
 ```bash
-~/.agent/explainer/status.sh 6                 # the last 6 runs
-~/.agent/explainer/stats.sh                    # per-model scoreboard
+hook/status.sh 6                               # the last 6 runs
+hook/stats.sh                                  # per-model scoreboard
 hook/test.sh                                   # self-check, must print "all passed"
-ls -t ~/.agent/diagrams/turn-*.html | head     # latest pages
+ls -t "$VISUAL_EXPLAINER_OUTPUT_DIR"/turn-*.html | head   # latest pages
 ```
 
-**Turn it off:** remove the `explain.sh` entry from `~/.claude/settings.json` (`hooks.Stop`). **Remove every trace:** also delete the data dir and `~/.agent/diagrams/turn-*`.
+**Turn it off:** remove the `explain.sh` entry from `~/.claude/settings.json` (`hooks.Stop`). **Remove every trace:** also delete the data dir and `$VISUAL_EXPLAINER_OUTPUT_DIR/turn-*`.
 
 ## Mechanics that matter
 

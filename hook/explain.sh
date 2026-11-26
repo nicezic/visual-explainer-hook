@@ -3,10 +3,10 @@
 # a pi explainer (model at the bottom) turn the latest entry into a visual-explainer page or SKIP.
 # The log stays append-only (explainer output is never added back except a one-line page marker).
 set -uo pipefail
-H=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")   # this repo's hook/ (the entry point may be a wrapper elsewhere)
+H=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")   # this repo's hook/
 # Runtime data (session logs, explainer journals, run views) lives OUTSIDE the repo: git clean or a push never touches it.
-D=${VISUAL_EXPLAINER_HOOK_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook}
-OUT=~/.agent/diagrams
+D=${XDG_STATE_HOME:-$HOME/.local/state}/visual-explainer-hook   # never under the pages: a /tmp output dir would drop the models file and idle journals
+OUT=${VISUAL_EXPLAINER_OUTPUT_DIR:-$HOME/.agents/diagrams}   # pages: upstream's output variable and default
 VE=$H/../plugins/visual-explainer   # this fork's VE, whose docs put auto-layout figures first
 export VISUAL_EXPLAINER_WIDTHS=1280   # pages open on the desktop: no 390px phone pass in the visual check (HISTORY decision 19)
 
