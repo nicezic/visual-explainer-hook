@@ -65,13 +65,12 @@ export function expandFlow(n, { errors, warnings, where, ref, callout = () => ""
     edges.splice(0, edges.length, ...m.edges);
     n.machine = m;
   }
-  // on a page, a row of 5+ boxes outgrows the column once labels stay at 12 px, so a flow wider than tall turns to run top-down
-  const bs = [...boxes.values()], col = (b) => (b.x - PAD) / (W + GX), row = (b) => (b.y - PAD) / (H + GY);
-  if (page && Math.max(...bs.map(col)) >= 4 && Math.max(...bs.map(col)) > Math.max(...bs.map(row))) for (const b of bs) [b.x, b.y] = [PAD + row(b) * (W + GX), PAD + col(b) * (H + GY)];
   const pairs = new Set(edges.map((e) => `${e.attrs.from}>${e.attrs.to}`));
   const toks = [];
   const lifts = new Map(); // region id → the sides its lifted arrows already leave from
   const width = Math.max(...[...boxes.values()].map((b) => b.x)) + W + PAD, height = Math.max(...[...boxes.values()].map((b) => b.y)) + H + PAD;
+  // a page column (main is 64rem) holds 4 columns with labels at 12 px; a wider flow scrolls sideways in its frame
+  if (page && width > 2 * PAD + 4 * W + 3 * GX) warnings.push(`${where(n)}: more than 4 columns are wider than a page column, so the drawing scrolls sideways; keep at most 4 columns, for example by running it top-down (swap the two numbers of each at="column row")`);
   const rects = new Map([...regions].filter(([, g]) => g.ids.length).map(([id, g]) => {
     const bs = g.ids.map((i) => boxes.get(i)), x = Math.min(...bs.map((b) => b.x)) - RX, y = Math.min(...bs.map((b) => b.y)) - RT;
     return [id, { k: g.k, ids: g.ids, x, y, w: Math.max(...bs.map((b) => b.x)) + W + RX - x, h: Math.max(...bs.map((b) => b.y)) + H + RX - y }];
